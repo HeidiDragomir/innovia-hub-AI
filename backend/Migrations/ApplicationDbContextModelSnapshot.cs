@@ -274,7 +274,7 @@ namespace backend.Migrations
                     b.HasIndex("ResourceId", "BookingDate", "EndDate")
                         .IsUnique();
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("backend.Models.Resource", b =>
@@ -299,7 +299,7 @@ namespace backend.Migrations
 
                     b.HasIndex("ResourceTypeId");
 
-                    b.ToTable("Resources");
+                    b.ToTable("Resources", (string)null);
 
                     b.HasData(
                         new
@@ -486,7 +486,7 @@ namespace backend.Migrations
 
                     b.HasKey("ResourceTypeId");
 
-                    b.ToTable("ResourceTypes");
+                    b.ToTable("ResourceTypes", (string)null);
 
                     b.HasData(
                         new

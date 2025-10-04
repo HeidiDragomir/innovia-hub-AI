@@ -1,16 +1,23 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./navbar.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { UserContext } from "../context/UserContext.tsx";
-
 
 const Navbar: React.FC = () => {
     const [open, setOpen] = useState(false);
     const { token, logout, user } = useContext(UserContext);
+    const location = useLocation();
+
+    // Close menu whenever route changes
+    useEffect(() => {
+        setOpen(false);
+    }, [location.pathname]);
 
     return (
         <nav className="navbar">
-            <div className="navbar-brand">Innovia Hub</div>
+            <div className="navbar-brand">
+                <Link to="/">Innovia Hub</Link>
+            </div>
             <button
                 className="navbar-toggle"
                 aria-label="Toggle navigation"
@@ -29,7 +36,6 @@ const Navbar: React.FC = () => {
                 )}
                 {token ? (
                     <>
-                    
                         <Link to="/myBookings" className="navbar-link">
                             My Bookings
                         </Link>

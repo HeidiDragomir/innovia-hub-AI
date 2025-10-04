@@ -94,7 +94,19 @@ namespace backend.Services
             };
 
             var created = await _repository.CreateAsync(booking);
-            await _hubContext.Clients.All.SendAsync("Booking created", created);
+
+            var bookingDto = new
+            {
+                bookingId = created.BookingId,
+                resourceId = created.ResourceId,
+                userId = created.UserId,
+                bookingDate = created.BookingDate,
+                endDate = created.EndDate,
+                timeslot = created.Timeslot
+            };
+
+            await _hubContext.Clients.All.SendAsync("BookingCreated", new {ResourceName = resource.Name});
+
             return created;
         }
 
@@ -104,7 +116,7 @@ namespace backend.Services
             var updated = await _repository.UpdateAsync(booking);
             if (updated != null)
             {
-                await _hubContext.Clients.All.SendAsync("Booking updated", updated);
+                await _hubContext.Clients.All.SendAsync("BookingUpdated", updated);
             }
             return updated;
         }
@@ -115,7 +127,7 @@ namespace backend.Services
             var booking = await _repository.CancelBookingAsync(userId, isAdmin, bookingId);
             if (booking != null)
             {
-                await _hubContext.Clients.All.SendAsync("Booking cancelled", booking);
+                await _hubContext.Clients.All.SendAsync("BookingCancelled", booking);
             }
             return booking;
         }
@@ -130,10 +142,10 @@ namespace backend.Services
                 if (resource != null)
                 {
                     resource.IsBooked = false;
-                    await _hubContext.Clients.All.SendAsync("Resource updated", resource);
+                    await _hubContext.Clients.All.SendAsync("ResourceUpdated", resource);
                 }
 
-                await _hubContext.Clients.All.SendAsync("Booking deleted", booking);
+                await _hubContext.Clients.All.SendAsync("BookingDeleted", booking);
             }
             return booking;
         }

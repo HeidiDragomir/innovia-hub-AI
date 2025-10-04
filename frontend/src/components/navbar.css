@@ -19,13 +19,16 @@
   display: flex;
   align-items: center;
   gap: 2rem;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+  max-height: 1000px; /* default desktop height */
 }
 
 .navbar-link {
   color: #fff;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: color 0.2s, opacity 0.3s ease, transform 0.3s ease;
 }
 
 .navbar-link:hover {
@@ -59,18 +62,27 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-    padding: 1rem 2rem;
-    display: none;
+    padding: 0 2rem;
+    max-height: 0; /* hidden by default */
+    overflow: hidden;
     z-index: 10;
   }
 
   .navbar-links.open {
-    display: flex;
+    padding: 1rem 2rem;
+    max-height: 500px; /* enough to show all links */
   }
 
   .navbar-link {
     margin: 0.5rem 0;
     width: 100%;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  .navbar-links.open .navbar-link {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .navbar-toggle {

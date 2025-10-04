@@ -1,14 +1,13 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 import { UserContext } from "@/context/UserContext.tsx";
 import { motion } from "framer-motion";
 import Button from "../components/Button/Button.tsx";
 
 const LandingPage: React.FC = () => {
-    const { token } = React.useContext(UserContext);
-
-    const isLoggedIn = !!token;
+    const { isAuthenticated } = useContext(UserContext);
+    const navigate = useNavigate();
 
     return (
         <div className="landing-root">
@@ -42,14 +41,15 @@ const LandingPage: React.FC = () => {
                     animate={{ scale: 1 }}
                     transition={{ delay: 1, duration: 0.5 }}
                 >
-                    <Link to={isLoggedIn ? "/bookings" : "/signup"}>
-                        <Button
-                            design="outline-white"
-                            className="px-6 py-3 text-base sm:text-lg mt-4"
-                        >
-                            {isLoggedIn ? "Go to Booking Page" : "Sign Up"}
-                        </Button>
-                    </Link>
+                    <Button
+                        design="outline-white"
+                        className="px-6 py-3 text-base sm:text-lg mt-4"
+                        onClick={() => {
+                            navigate(isAuthenticated ? "/bookings" : "/signup");
+                        }}
+                    >
+                        {isAuthenticated ? "Go to Booking Page" : "Sign Up"}
+                    </Button>
                 </motion.div>
             </section>
 
@@ -118,14 +118,14 @@ const LandingPage: React.FC = () => {
                     Ready to get started?
                 </motion.h2>
                 <Link
-                    to={isLoggedIn ? "/bookings" : "/signup"}
+                    to={isAuthenticated ? "/bookings" : "/signup"}
                     className="flex justify-center"
                 >
                     <Button
                         design="outline-white"
                         className="px-6 py-3 text-base sm:text-lg mt-4"
                     >
-                        {isLoggedIn ? "Go to Booking Page" : "Sign Up"}
+                        {isAuthenticated ? "Go to Booking Page" : "Sign Up"}
                     </Button>
                 </Link>
             </section>
