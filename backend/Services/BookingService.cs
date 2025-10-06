@@ -1,12 +1,14 @@
-using System;
+using AutoMapper;
+using Azure;
 using backend.Data;
-using backend.Models;
-using backend.Repositories;
-using backend.Models.DTOs;
-using Microsoft.AspNetCore.SignalR;
 using backend.Hubs;
+using backend.Models;
+using backend.Models.DTOs;
 using backend.Models.DTOs.Resource;
+using backend.Repositories;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace backend.Services
 {
@@ -30,21 +32,27 @@ namespace backend.Services
         }
 
         //Get all bookings
-        public async Task<IEnumerable<Booking>> GetAllAsync()
+        public async Task<IEnumerable<BookingResponseDTO>> GetAllAsync()
         {
-            return await _repository.GetAllAsync();
+            var bookings = await _repository.GetAllAsync();
+            return bookings.Select(MapToResponseDTO);
         }
 
         //Get booking by ID
-        public async Task<Booking?> GetByIdAsync(int BookingId)
+        public async Task<BookingResponseDTO?> GetByIdAsync(int bookingId)
         {
-            return await _repository.GetByIdAsync(BookingId);
+            var booking = await _repository.GetByIdAsync(bookingId);
+
+            if (booking == null) return null;
+
+            return MapToResponseDTO(booking);
         }
 
         //Get bookings for the current user
-        public async Task<IEnumerable<Booking>> GetMyBookingsAsync(string UserId, bool includeExpiredBookings)
+        public async Task<IEnumerable<BookingResponseDTO>> GetMyBookingsAsync(string userId, bool includeExpiredBookings)
         {
-            return await _repository.GetMyBookingsAsync(UserId, includeExpiredBookings);
+            var bookings = await _repository.GetMyBookingsAsync(userId, includeExpiredBookings);
+            return bookings.Select(MapToResponseDTO);
         }
 
         //Get all bookings for a resource
@@ -54,7 +62,7 @@ namespace backend.Services
         }
 
         //Creates a new booking 
-        public async Task<Booking> CreateAsync(string userId, BookingDTO dto)
+        public async Task<BookingResponseDTO> CreateAsync(string userId, BookingDTO dto)
         {
             var resource = await _resourceService.GetByIdAsync(dto.ResourceId);
             if (resource == null) throw new Exception("Resource doesnt exist");
@@ -67,11 +75,11 @@ namespace backend.Services
 
             //Start and end times based on FM/EF
             var startLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(8) : localDate.Date.AddHours(12);
-            var endLocal   = dto.Timeslot == "FM" ? localDate.Date.AddHours(12) : localDate.Date.AddHours(16);
+            var endLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(12) : localDate.Date.AddHours(16);
 
             //Convert to UTC time
             var startUtc = startLocal.ToUniversalTime();
-            var endUtc   = endLocal.ToUniversalTime();
+            var endUtc = endLocal.ToUniversalTime();
 
             //Check if timeslot already booked
             var conflict = await _context.Bookings.AnyAsync(b =>
@@ -82,7 +90,7 @@ namespace backend.Services
             );
             if (conflict) throw new Exception("Timeslot already booked");
 
-            //Save booking
+            // Create booking entity
             var booking = new Booking
             {
                 IsActive = true,
@@ -95,45 +103,84 @@ namespace backend.Services
 
             var created = await _repository.CreateAsync(booking);
 
-            var bookingDto = new
-            {
-                bookingId = created.BookingId,
-                resourceId = created.ResourceId,
-                userId = created.UserId,
-                bookingDate = created.BookingDate,
-                endDate = created.EndDate,
-                timeslot = created.Timeslot
-            };
+            var response = MapToResponseDTO(created);
+            response.ResourceName = resource.Name;
 
-            await _hubContext.Clients.All.SendAsync("BookingCreated", new {ResourceName = resource.Name});
+            await _hubContext.Clients.All.SendAsync("BookingCreated", new { ResourceName = resource.Name, UserId = userId });
 
-            return created;
+            return response;
         }
 
         //Update booking
-        public async Task<Booking?> UpdateAsync(Booking booking)
+        public async Task<BookingResponseDTO?> UpdateAsync(int bookingId, BookingDTO dto)
         {
-            var updated = await _repository.UpdateAsync(booking);
+            // Get the existing booking
+            var existing = await _repository.GetByIdAsync(bookingId);
+            if (existing == null) return null;
+
+            // Parse the booking date string to DateTime
+            if (!DateTime.TryParse(dto.BookingDate, out DateTime localDate))
+                throw new ArgumentException("Invalid booking date format.");
+
+            if (dto.Timeslot != "FM" && dto.Timeslot != "EF")
+                throw new ArgumentException("No valid timeslot specified.");
+
+            // Calculate start and end times based on FM/EF
+            var startLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(8) : localDate.Date.AddHours(12);
+            var endLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(12) : localDate.Date.AddHours(16);
+
+            // Convert to UTC
+            var startUtc = startLocal.ToUniversalTime();
+            var endUtc = endLocal.ToUniversalTime();
+
+            // Check for conflicts with other bookings
+            var conflict = await _context.Bookings.AnyAsync(b =>
+                b.BookingId != bookingId &&      // Ignore the current booking
+                b.ResourceId == existing.ResourceId &&
+                b.IsActive &&
+                b.BookingDate == startUtc &&
+                b.EndDate == endUtc
+            );
+            if (conflict) throw new Exception("Timeslot already booked by another user.");
+
+            // Update booking fields
+            existing.BookingDate = startUtc;
+            existing.EndDate = endUtc;
+            existing.Timeslot = dto.Timeslot;
+
+            var updated = await _repository.UpdateAsync(existing);
+
             if (updated != null)
             {
-                await _hubContext.Clients.All.SendAsync("BookingUpdated", updated);
+                var response = MapToResponseDTO(updated);
+
+                // Notify all clients via SignalR
+                await _hubContext.Clients.All.SendAsync("BookingUpdated", response);
+
+                return response;
             }
-            return updated;
+
+            return null;
         }
 
+
         //Cancel booking
-        public async Task<Booking?> CancelBookingAsync(string userId, bool isAdmin, int bookingId)
+        public async Task<BookingResponseDTO?> CancelBookingAsync(string userId, bool isAdmin, int bookingId)
         {
             var booking = await _repository.CancelBookingAsync(userId, isAdmin, bookingId);
             if (booking != null)
             {
-                await _hubContext.Clients.All.SendAsync("BookingCancelled", booking);
+                var response = MapToResponseDTO(booking);
+
+                await _hubContext.Clients.All.SendAsync("BookingCancelled", response);
+
+                return response;
             }
-            return booking;
+            return null;
         }
 
         //Delete booking permanently
-        public async Task<Booking?> DeleteAsync(int bookingId)
+        public async Task<BookingResponseDTO?> DeleteAsync(int bookingId)
         {
             var booking = await _repository.DeleteAsync(bookingId);
             if (booking != null)
@@ -145,9 +192,31 @@ namespace backend.Services
                     await _hubContext.Clients.All.SendAsync("ResourceUpdated", resource);
                 }
 
-                await _hubContext.Clients.All.SendAsync("BookingDeleted", booking);
+                var response = MapToResponseDTO(booking);
+
+                await _hubContext.Clients.All.SendAsync("BookingDeleted", response);
+
+                return response;
             }
-            return booking;
+            return null;
+        }
+
+
+        // Helper method: Entity -> DTO
+        private BookingResponseDTO MapToResponseDTO(Booking booking)
+        {
+            return new BookingResponseDTO
+            {
+                BookingId = booking.BookingId,
+                BookingDate = booking.BookingDate,
+                EndDate = booking.EndDate,
+                Timeslot = booking.Timeslot,
+                IsActive = booking.IsActive,
+                ResourceId = booking.ResourceId,
+                ResourceName = booking.Resource?.Name ?? string.Empty,
+                UserId = booking.UserId
+            };
         }
     }
+
 }

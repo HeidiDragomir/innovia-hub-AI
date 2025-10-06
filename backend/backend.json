@@ -1495,36 +1495,6 @@
             "description": "OK"
           }
         }
-      },
-      "put": {
-        "tags": [
-          "Bookings"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Booking"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Booking"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Booking"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
       }
     },
     "/api/Bookings/{BookingId}": {
@@ -1596,6 +1566,49 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Bookings/{bookingId}": {
+      "put": {
+        "tags": [
+          "Bookings"
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingDTO"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -2108,131 +2121,6 @@
           }
         }
       },
-      "ApplicationUser": {
-        "type": "object",
-        "properties": {
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "bookings": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Booking"
-            }
-          },
-          "id": {
-            "type": "string",
-            "nullable": true
-          },
-          "userName": {
-            "type": "string",
-            "nullable": true
-          },
-          "normalizedUserName": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "normalizedEmail": {
-            "type": "string",
-            "nullable": true
-          },
-          "emailConfirmed": {
-            "type": "boolean"
-          },
-          "passwordHash": {
-            "type": "string",
-            "nullable": true
-          },
-          "securityStamp": {
-            "type": "string",
-            "nullable": true
-          },
-          "concurrencyStamp": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumberConfirmed": {
-            "type": "boolean"
-          },
-          "twoFactorEnabled": {
-            "type": "boolean"
-          },
-          "lockoutEnd": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "lockoutEnabled": {
-            "type": "boolean"
-          },
-          "accessFailedCount": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "nullable": true
-      },
-      "Booking": {
-        "type": "object",
-        "properties": {
-          "bookingId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "bookingDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "timeslot": {
-            "type": "string"
-          },
-          "userId": {
-            "type": "string"
-          },
-          "user": {
-            "$ref": "#/components/schemas/ApplicationUser"
-          },
-          "resource": {
-            "$ref": "#/components/schemas/Resource"
-          },
-          "resourceId": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "BookingDTO": {
         "required": [
           "resourceId",
@@ -2547,55 +2435,6 @@
           }
         }
       },
-      "Resource": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "resourceId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "resourceTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "resourceType": {
-            "$ref": "#/components/schemas/ResourceType"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isBooked": {
-            "type": "boolean"
-          }
-        },
-        "nullable": true
-      },
-      "Resource2": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "resourceId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "resourceTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "resourceType": { },
-          "name": {
-            "type": "string"
-          },
-          "isBooked": {
-            "type": "boolean"
-          }
-        }
-      },
       "ResourceDTO": {
         "type": "object",
         "properties": {
@@ -2627,27 +2466,6 @@
           },
           "name": {
             "type": "string"
-          }
-        }
-      },
-      "ResourceType": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "resourceTypeId": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string"
-          },
-          "resources": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Resource2"
-            }
           }
         }
       },

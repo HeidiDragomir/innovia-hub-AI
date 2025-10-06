@@ -90,18 +90,21 @@ namespace backend.Controllers
         }
 
         //Updating an existing booking
-        [Authorize(Roles = "Admin")]
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] Booking booking)
+        [Authorize(Roles = "Admin, Member")]
+        [HttpPut("{bookingId}")]
+        public async Task<ActionResult> Update(int bookingId, [FromBody] BookingDTO dto)
         {
+            if (dto == null)
+                return BadRequest("Booking data is required.");
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var updated = await _service.UpdateAsync(booking);
+            var updated = await _service.UpdateAsync(bookingId, dto);
             return updated == null ? NotFound() : Ok(updated);
         }
 
-    
+
         //Cancels a booking
         [Authorize(Roles = "Admin, Member")]
         [HttpPost("cancel/{bookingId}")]

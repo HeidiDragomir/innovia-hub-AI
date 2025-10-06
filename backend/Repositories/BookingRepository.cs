@@ -11,12 +11,10 @@ namespace backend.Repositories
     public class BookingRepository : IBookingRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHubContext<BookingHub> _hubContext;
 
-        public BookingRepository(ApplicationDbContext context, IHubContext<BookingHub> hubContext)
+        public BookingRepository(ApplicationDbContext context)
         {
             _context = context;
-            _hubContext = hubContext;
         }
 
         //Get all bookings with resources
@@ -96,7 +94,6 @@ namespace backend.Repositories
             _context.Bookings.Remove(booking);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.All.SendAsync("BookingCancelled", booking);
             return booking;
         }
 
@@ -112,7 +109,6 @@ namespace backend.Repositories
             _context.Bookings.Remove(booking);
             await _context.SaveChangesAsync();
 
-            await _hubContext.Clients.All.SendAsync("BookingDeleted", booking);
             return booking;
         }
     }

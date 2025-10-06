@@ -9,5 +9,6 @@
         public bool IsActive { get; set; }
         public int ResourceId { get; set; }
         public string ResourceName { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
     }
 }

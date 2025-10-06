@@ -14,11 +14,15 @@ import ResourceCard from "@/components/Resource/ResourceCard";
 import CalendarComponent from "@/components/Calender/calenderComponent";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
+import AnimatedSimpleLoading from "@/components/AnimatedIcons/AnimatedSimpleLoading.tsx";
 
 //Format for bookingdate (Stockholm time)
-const dateKey = (d: Date | string) => {
+const dateKey = (d?: Date | string | null) => {
+    if (!d) return "";
+
     const date = typeof d === "string" ? new Date(d) : d;
-    if (isNaN(date.getTime())) return "";
+    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
+
     return date.toLocaleDateString("sv-SE", {
         timeZone: "Europe/Stockholm",
         year: "numeric",
@@ -48,7 +52,7 @@ const todayKeySthlm = () =>
     }).format(new Date());
 
 export default function BookingsPage() {
-    const { token } = useContext(UserContext);
+    const { token, user } = useContext(UserContext);
     const [resources, setResources] = useState<Resource[]>([]);
     const [allBookings, setAllBookings] = useState<Booking[]>([]);
     const [myBookings, setMyBookings] = useState<Booking[]>([]);
@@ -69,6 +73,7 @@ export default function BookingsPage() {
     );
 
     type DaySlots = { FM: boolean; EF: boolean };
+
     const slotMap = useMemo(() => {
         const map = new Map<string, DaySlots>();
 
@@ -81,7 +86,7 @@ export default function BookingsPage() {
             );
             const dateStr = new Date(stockholmDate).toISOString().slice(0, 10);
 
-            const key = `${b.resource.resourceId}__${dateStr}`;
+            const key = `${b.resourceId}__${dateStr}`;
             const entry = map.get(key) ?? { FM: false, EF: false };
 
             const slot = b.timeslot;
@@ -96,7 +101,7 @@ export default function BookingsPage() {
 
     //Fetching bookings & recources
     useEffect(() => {
-        if (!token) return;
+        if (!token || !user?.id) return;
         (async () => {
             try {
                 const [r, ab, mb] = await Promise.all([
@@ -141,17 +146,68 @@ export default function BookingsPage() {
             .withAutomaticReconnect()
             .build();
 
-        connection.on("BookingCreated", (data: { resourceName: string }) => {
-            console.log("data", data.resourceName);
-            if (data && data.resourceName) {
-                toast.success(
-                    `A new booking for ${data.resourceName} has been created!`
-                );
+        connection.on(
+            "BookingCreated",
+            (data: { resourceName: string; userId: string }) => {
+                if (!data?.resourceName) return;
+
+                if (data.userId === user.id) {
+                    toast.success(
+                        `You successfully booked ${data.resourceName}!`
+                    );
+                } else {
+                    toast(
+                        `A new booking for ${data.resourceName} was made by another user.`,
+                        {
+                            icon: "📢",
+                        }
+                    );
+                }
                 refreshData();
             }
+        );
+
+        // connection.on("BookingUpdated", (booking: Booking) => {
+        //     if (booking.userId === user.id) {
+        //         toast.success(
+        //             `Your booking for ${booking.resourceName} was updated!`
+        //         );
+        //     } else {
+        //         toast(`A booking for ${booking.resourceName} was updated.`, {
+        //             icon: "🔄",
+        //         });
+        //     }
+        //     refreshData();
+        // });
+
+        connection.on("BookingCancelled", (booking: Booking) => {
+            if (booking.userId === user.id) {
+                toast(
+                    `You cancelled your booking for ${booking.resourceName}.`
+                );
+            } else {
+                toast(`A booking for ${booking.resourceName} was cancelled.`, {
+                    icon: "⚠️",
+                });
+            }
+            refreshData();
         });
 
+        // connection.on("BookingDeleted", (booking: Booking) => {
+        //     if (booking.userId === user.id) {
+        //         toast.error(
+        //             `Your booking for ${booking.resourceName} was permanently deleted!`
+        //         );
+        //     } else {
+        //         toast.error(
+        //             `A booking for ${booking.resourceName} was deleted.`
+        //         );
+        //     }
+        //     refreshData();
+        // });
+
         connectionRef.current = connection;
+
         connection
             .start()
             .then(() => {
@@ -164,29 +220,26 @@ export default function BookingsPage() {
         return () => {
             connection.stop();
         };
-    }, [token]);
+    }, [token, user?.id]);
 
     //Function to handle booking
-    const handleBook = async (
-        resourceId: number,
-        dateKeyStr: string,
-        time: "Morning" | "Afternoon"
-    ) => {
-        if (!token) return;
+    const handleBook = async () => {
+        if (!token || !selectedResource || !selectedDateKey || !timeOfDay)
+            return;
 
         const today = todayKeySthlm();
         const hour = currentSthlmHour();
 
-        if (dateKeyStr < today) {
+        if (selectedDateKey < today) {
             toast.error("You cannot book a past date.");
             return;
         }
-        if (dateKeyStr === today) {
-            if (time === "Morning" && hour >= 12) {
+        if (selectedDateKey === today) {
+            if (timeOfDay === "Morning" && hour >= 12) {
                 toast.error("Morning has already passed today.");
                 return;
             }
-            if (time === "Afternoon" && hour >= 16) {
+            if (timeOfDay === "Afternoon" && hour >= 16) {
                 toast.error("Afternoon has already passed today.");
                 return;
             }
@@ -195,12 +248,15 @@ export default function BookingsPage() {
         try {
             //Backend saving in UTC
             const dto: BookingDTO = {
-                resourceId,
-                bookingDate: dateKeyStr,
-                timeslot: time === "Morning" ? "FM" : "EF",
+                resourceId: selectedResource.resourceId,
+                bookingDate: selectedDateKey,
+                timeslot: timeOfDay === "Morning" ? "FM" : "EF",
             };
 
             await createBooking(token, dto);
+            setSelectedResource(null);
+            setSelectedDateKey(null);
+            setTimeOfDay(null);
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? "Could not create booking");
@@ -212,8 +268,6 @@ export default function BookingsPage() {
         if (!token) return;
         try {
             await cancelBooking(token, bookingId);
-            toast.success("Booking canceled!");
-
             const [r, ab, mb] = await Promise.all([
                 fetchResources(token),
                 fetchBookings(token),
@@ -239,17 +293,17 @@ export default function BookingsPage() {
 
     //Checking disabled slots for selected date
     const currentSlots = useMemo(() => {
-        if (!selectedResource || !selectedDateKey) return null;
+        if (!selectedResource?.resourceId || !selectedDateKey) return null;
 
         const k = `${selectedResource.resourceId}__${selectedDateKey}`;
         const s = slotMap.get(k) ?? { FM: false, EF: false };
 
-        const today = todayKeySthlm();
-        const hour = currentSthlmHour();
-
         let fmDisabled = s.FM;
         let efDisabled = s.EF;
 
+        // Disable past times for today
+        const today = todayKeySthlm();
+        const hour = currentSthlmHour();
         if (selectedDateKey === today) {
             fmDisabled = fmDisabled || hour >= 12;
             efDisabled = efDisabled || hour >= 16;
@@ -258,7 +312,13 @@ export default function BookingsPage() {
         return { ...s, fmDisabled, efDisabled };
     }, [selectedResource, selectedDateKey, slotMap]);
 
-    if (loading) return <p className="text-gray-600">Loading resources...</p>;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <AnimatedSimpleLoading />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 space-y-12">
@@ -292,25 +352,10 @@ export default function BookingsPage() {
                                             resource={r}
                                             allBookings={allBookings}
                                             myBookings={myBookings}
-                                            onOpenBooking={async (res) => {
-                                                setSelectedResource(res);
+                                            onOpenBooking={() => {
+                                                setSelectedResource(r);
                                                 setSelectedDateKey(null);
                                                 setTimeOfDay(null);
-
-                                                //Fresh bookings when modal opens
-                                                if (token) {
-                                                    const [ab, mb] =
-                                                        await Promise.all([
-                                                            fetchBookings(
-                                                                token
-                                                            ),
-                                                            fetchMyBookings(
-                                                                token
-                                                            ),
-                                                        ]);
-                                                    setAllBookings(ab);
-                                                    setMyBookings(mb);
-                                                }
                                             }}
                                             onCancel={handleCancel}
                                         />
@@ -357,7 +402,7 @@ export default function BookingsPage() {
                                         value="Morning"
                                         disabled={currentSlots.fmDisabled}
                                     >
-                                        Morning (08–12){" "}
+                                        Morning (08-12){" "}
                                         {currentSlots.FM
                                             ? " - already booked"
                                             : ""}
@@ -366,7 +411,7 @@ export default function BookingsPage() {
                                         value="Afternoon"
                                         disabled={currentSlots.efDisabled}
                                     >
-                                        Afternoon (12–16){" "}
+                                        Afternoon (12-16){" "}
                                         {currentSlots.EF
                                             ? " - already booked"
                                             : ""}
@@ -376,28 +421,7 @@ export default function BookingsPage() {
                         )}
 
                         <div className="flex justify-between">
-                            <Button
-                                onClick={() => {
-                                    if (!selectedDateKey) {
-                                        toast.error(
-                                            "You have to choose a date!"
-                                        );
-                                        return;
-                                    }
-                                    if (!timeOfDay) {
-                                        toast.error("Please choose a time!");
-                                        return;
-                                    }
-                                    handleBook(
-                                        selectedResource.resourceId,
-                                        selectedDateKey,
-                                        timeOfDay
-                                    );
-                                    setSelectedResource(null);
-                                    setSelectedDateKey(null);
-                                    setTimeOfDay(null);
-                                }}
-                            >
+                            <Button onClick={handleBook}>
                                 Confirm Booking
                             </Button>
                             <Button
