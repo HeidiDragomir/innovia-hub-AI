@@ -17,7 +17,24 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+DotNetEnv.Env.Load();
+
 builder.Services.AddOpenApi();
+
+
+// Register IHttpClientFactory by calling AddHttpClient
+builder.Services.AddHttpClient("OpenAI", client =>
+{
+    // Specify configuration for a named HttpClient "OpenAI"
+    client.BaseAddress = new Uri("https://api.openai.com/v1/");
+
+    var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+
+    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+});
+
 
 builder.Configuration
     .AddEnvironmentVariables();
@@ -29,6 +46,7 @@ builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAIRecommendationService, AIRecommendationService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

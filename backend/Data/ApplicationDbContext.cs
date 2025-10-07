@@ -15,6 +15,7 @@ namespace backend.Data
         public DbSet<ResourceType> ResourceTypes { get; set; }
         public DbSet<Resource> Resources { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<AIRecommendation> AIRecommendations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
