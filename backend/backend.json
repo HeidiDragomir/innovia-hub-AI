@@ -1293,6 +1293,18 @@
         }
       }
     },
+    "/api/AI/recommendations": {
+      "get": {
+        "tags": [
+          "AI"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Auth/health": {
       "get": {
         "tags": [
@@ -2571,6 +2583,9 @@
   "tags": [
     {
       "name": "Admin"
+    },
+    {
+      "name": "AI"
     },
     {
       "name": "Auth"
