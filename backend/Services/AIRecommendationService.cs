@@ -93,26 +93,33 @@ namespace backend.Services
                 }
 
                 // Step 6: Parse and return the AI response
-                var result = await ParseResponseAsync(response);
+                var results = await ParseResponseAsync(response);
 
-                // If parsing failed, return a safe default message
-                var recommendation = result ?? new AIRecommendation
+                if (results == null || !results.Any())
                 {
-                    Recommendation = new RecommendationDetail
+                    results = new List<AIRecommendation>
                     {
-                        ResourceName = "N/A",
-                        Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                        Timeslot = "FM"
-                    },
-                    Reason = "AI response was empty"
-                };
+                        new AIRecommendation
+                        {
+                            Recommendation = new RecommendationDetail
+                            {
+                                ResourceName = "N/A",
+                                Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+                                Timeslot = "FM"
+                            },
+                            Reason = "AI response was empty"
+                        }
+                    };
+                }
 
-                recommendation.UserId = userId;
-                recommendation.CreatedAt = DateTime.UtcNow;
+                foreach (var rec in results)
+                {
+                    rec.UserId = userId;
+                    rec.CreatedAt = DateTime.UtcNow;
+                    await _aiRepo.Create(rec);
+                }
 
-                await _aiRepo.Create(recommendation);
-
-                return new List<AIRecommendation> { recommendation };
+                return results;
             }
             catch (Exception ex)
             {
@@ -168,10 +175,10 @@ namespace backend.Services
                 BookedSlots = bookings
                 .Where(b => b.ResourceId == r.ResourceId)
                 .Select(b => new
-                    {
-                        Date = TimeZoneInfo.ConvertTimeFromUtc(b.BookingDate, localZone).ToString("yyyy-MM-dd"),
-                        Timeslot = b.Timeslot
-                    })
+                {
+                    Date = TimeZoneInfo.ConvertTimeFromUtc(b.BookingDate, localZone).ToString("yyyy-MM-dd"),
+                    Timeslot = b.Timeslot
+                })
                 .ToList()
             });
 
@@ -201,19 +208,22 @@ namespace backend.Services
                                 - Avoid recommending resources that are already booked at the suggested date/time (check BookedSlots).
                                 - Never suggest past times (compare with ""now"").
                                 - Only suggest available resources and valid timeslots.
-                                - Provide a single, concise recommendation that includes the resource name and the optimal time to book it. 
+                                - Provide four, concise recommendations that include the resource name and the optimal time to book its. 
                                 - Include a brief reason for your recommendation, such as ""Often available at this time"" or ""Matches your usual booking pattern."" 
                                 - Avoid suggesting resources that are unavailable or already heavily booked. 
                                 - Keep your responses friendly, clear and professional 
                                 - You MUST respond *only* in valid JSON, with this format:
-                                    {
-                                      ""recommendation"": {
-                                        ""resourceName"": ""<resource name>"",
-                                        ""date"": ""<yyyy-MM-dd>"",
-                                        ""timeslot"": ""<FM or EF>""
-                                      },
-                                      ""reason"": ""<short explanation>""
-                                    }
+                                    [
+                                        {
+                                          ""recommendation"": {
+                                            ""resourceName"": ""<resource name>"",
+                                            ""date"": ""<yyyy-MM-dd>"",
+                                            ""timeslot"": ""<FM or EF>""
+                                          },
+                                          ""reason"": ""<short explanation>""
+                                        }
+                                    ]
+                                    
                                 - Never include explanations or extra text outside the JSON."
                     },
                     new
@@ -229,7 +239,7 @@ namespace backend.Services
 
 
         // Parses the OpenAI JSON response into AIRecommendation
-        private async Task<AIRecommendation?> ParseResponseAsync(HttpResponseMessage response)
+        private async Task<List<AIRecommendation>> ParseResponseAsync(HttpResponseMessage response)
         {
             // Step 1: Read the API response as string
             var content = await response.Content.ReadAsStringAsync();
@@ -269,19 +279,19 @@ namespace backend.Services
                         {
                             // Sometimes the model includes extra text around JSON.
                             // It finds the first { and the last }, and extracts only the text between them
-                            var start = text.IndexOf('{');
-                            var end = text.LastIndexOf('}');
+                            var start = text.IndexOf('[');
+                            var end = text.LastIndexOf(']');
 
                             if (start != -1 && end != -1)
                             {
                                 var jsonPart = text.Substring(start, end - start + 1);
 
-                                var parsed = JsonSerializer.Deserialize<AIRecommendation>(jsonPart, new JsonSerializerOptions
+                                var parsed = JsonSerializer.Deserialize<List<AIRecommendation>>(jsonPart, new JsonSerializerOptions
                                 {
                                     PropertyNameCaseInsensitive = true
                                 });
 
-                                if (parsed != null) return parsed;
+                                if (parsed != null && parsed.Any()) return parsed;
                             }
                         }
                         catch (Exception ex)

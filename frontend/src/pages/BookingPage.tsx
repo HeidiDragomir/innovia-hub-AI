@@ -343,17 +343,8 @@ export default function BookingsPage() {
         return { ...s, fmDisabled, efDisabled };
     }, [selectedResource, selectedDateKey, slotMap]);
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <AnimatedSimpleLoading />
-            </div>
-        );
-    }
-
     return (
         <div className="p-6 space-y-12">
-            <h2 className="text-2xl font-bold my-4">AI Recommendation</h2>
             {/* === Smart Booking Assistant Section ===  */}
             {loadingRec ? (
                 <div className="flex justify-center items-center h-40">
