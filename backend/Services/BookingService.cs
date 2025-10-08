@@ -73,15 +73,18 @@ namespace backend.Services
             if (!DateTime.TryParse(dto.BookingDate, out var localDate))
                 throw new Exception("Invalid date format");
 
-            //Start and end times based on FM/EF
+            // Define the user's local timezone (Sweden)
+            var localZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm");
+
+            // Build start/end times in the local timezone (08:00–12:00 or 12:00–16:00)
             var startLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(8) : localDate.Date.AddHours(12);
             var endLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(12) : localDate.Date.AddHours(16);
 
-            //Convert to UTC time
-            var startUtc = startLocal.ToUniversalTime();
-            var endUtc = endLocal.ToUniversalTime();
+            // Convert to UTC time
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(startLocal, localZone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(endLocal, localZone);
 
-            //Check if timeslot already booked
+            // Check if timeslot already booked
             var conflict = await _context.Bookings.AnyAsync(b =>
                 b.ResourceId == dto.ResourceId &&
                 b.IsActive &&
@@ -125,13 +128,16 @@ namespace backend.Services
             if (dto.Timeslot != "FM" && dto.Timeslot != "EF")
                 throw new ArgumentException("No valid timeslot specified.");
 
-            // Calculate start and end times based on FM/EF
+            // Define the user's local timezone (Sweden)
+            var localZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm");
+
+            // Build start/end times in the local timezone (08:00–12:00 or 12:00–16:00)
             var startLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(8) : localDate.Date.AddHours(12);
             var endLocal = dto.Timeslot == "FM" ? localDate.Date.AddHours(12) : localDate.Date.AddHours(16);
 
-            // Convert to UTC
-            var startUtc = startLocal.ToUniversalTime();
-            var endUtc = endLocal.ToUniversalTime();
+            // Convert to UTC time
+            var startUtc = TimeZoneInfo.ConvertTimeToUtc(startLocal, localZone);
+            var endUtc = TimeZoneInfo.ConvertTimeToUtc(endLocal, localZone);
 
             // Check for conflicts with other bookings
             var conflict = await _context.Bookings.AnyAsync(b =>

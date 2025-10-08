@@ -84,6 +84,9 @@ namespace backend.Data
             });
 
             modelBuilder.Entity<Resource>().HasData(resources);
+
+            modelBuilder.Entity<AIRecommendation>()
+                .OwnsOne(r => r.Recommendation);
         }
     }
 }

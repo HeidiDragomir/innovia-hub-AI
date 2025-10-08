@@ -15,6 +15,9 @@ import CalendarComponent from "@/components/Calender/calenderComponent";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import AnimatedSimpleLoading from "@/components/AnimatedIcons/AnimatedSimpleLoading.tsx";
+import type { Recommendation } from "@/types/recommendation.ts";
+import { fetchRecommendations } from "@/api/recommendationApi.tsx";
+import { formatDistanceToNow } from "date-fns";
 
 //Format for bookingdate (Stockholm time)
 const dateKey = (d?: Date | string | null) => {
@@ -57,6 +60,11 @@ export default function BookingsPage() {
     const [allBookings, setAllBookings] = useState<Booking[]>([]);
     const [myBookings, setMyBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [recommendations, setRecommendations] = useState<Recommendation[]>(
+        []
+    );
+    const [loadingRec, setLoadingRec] = useState(true);
+    const fetchedRef = useRef(false); // Prevent duplicate calls
 
     const [selectedResource, setSelectedResource] = useState<Resource | null>(
         null
@@ -119,6 +127,28 @@ export default function BookingsPage() {
             }
         })();
     }, [token]);
+
+    // Fetch the recommendations
+    useEffect(() => {
+        // Run only once per valid token
+        if (!token || fetchedRef.current) return;
+        fetchedRef.current = true;
+
+        const getAIRecommendations = async () => {
+            try {
+                setLoadingRec(true);
+                const result = await fetchRecommendations(token);
+                setRecommendations(result);
+            } catch (err) {
+                console.error("Error fetching AI recommendations:", err);
+            } finally {
+                setLoadingRec(false);
+            }
+        };
+        getAIRecommendations();
+    }, [token]);
+
+    console.log("RECOMMENDATIONS", recommendations);
 
     const refreshData = async () => {
         if (!token) return;
@@ -282,6 +312,7 @@ export default function BookingsPage() {
         }
     };
 
+    // Resource categories
     const desks = resources.filter((r) => r.resourceTypeName === "DropInDesk");
     const meetingRooms = resources.filter(
         (r) => r.resourceTypeName === "MeetingRoom"
@@ -291,7 +322,7 @@ export default function BookingsPage() {
         (r) => r.resourceTypeName === "AIserver"
     );
 
-    //Checking disabled slots for selected date
+    // Checking disabled slots for selected date
     const currentSlots = useMemo(() => {
         if (!selectedResource?.resourceId || !selectedDateKey) return null;
 
@@ -322,6 +353,152 @@ export default function BookingsPage() {
 
     return (
         <div className="p-6 space-y-12">
+            <h2 className="text-2xl font-bold my-4">AI Recommendation</h2>
+            {/* === Smart Booking Assistant Section ===  */}
+            {loadingRec ? (
+                <div className="flex justify-center items-center h-40">
+                    <AnimatedSimpleLoading />
+                    <p className="text-gray-500">
+                        Generating recommendation...
+                    </p>
+                </div>
+            ) : recommendations.length > 0 ? (
+                <div className="bg-blue-50 rounded-2xl p-6 shadow-sm border border-blue-200 mb-12">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-semibold">
+                            🤖 Smart Booking Assistant
+                        </h2>
+                        <Button
+                            onClick={async () => {
+                                const rec = await fetchRecommendations(token);
+                                setRecommendations(rec);
+                            }}
+                        >
+                            🔄 New AI Recommendation
+                        </Button>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {recommendations.map((rec) => {
+                            const resourceName =
+                                rec.recommendation.resourceName;
+                            let suggestedDate = rec.recommendation.date;
+                            const suggestedTimeslot =
+                                rec.recommendation.timeslot;
+
+                            // Determine suggested timeslot
+                            // const suggestedTimeslot = timeStr.includes(
+                            //     "08:00-12:00"
+                            // )
+                            //     ? "FM"
+                            //     : "EF";
+
+                            // // Default suggestion date handling
+                            // let suggestedDate = todayKeySthlm();
+                            const hourNow = currentSthlmHour();
+
+                            // If AI suggests Morning but morning has passed, move to tomorrow
+                            if (suggestedTimeslot === "FM" && hourNow >= 12) {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                suggestedDate = tomorrow.toLocaleDateString(
+                                    "sv-SE",
+                                    {
+                                        timeZone: "Europe/Stockholm",
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                    }
+                                );
+                            }
+
+                            // If AI suggests Afternoon but afternoon has passed, move to tomorrow
+                            if (suggestedTimeslot === "EF" && hourNow >= 16) {
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                suggestedDate = tomorrow.toLocaleDateString(
+                                    "sv-SE",
+                                    {
+                                        timeZone: "Europe/Stockholm",
+                                        year: "numeric",
+                                        month: "2-digit",
+                                        day: "2-digit",
+                                    }
+                                );
+                            }
+
+                            // Find resource safely (case-insensitive, trim spaces)
+                            const resource = resources.find(
+                                (r) =>
+                                    r.name.trim().toLowerCase() ===
+                                    resourceName.toLowerCase()
+                            );
+
+                            if (!resource) {
+                                // Show a placeholder if resource not found
+                                return (
+                                    <div
+                                        key={rec.id}
+                                        className="bg-gray-100 rounded-xl p-4 shadow-sm border"
+                                    >
+                                        <p className="text-red-500 text-sm">
+                                            Resource "{resourceName}" not found
+                                        </p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div
+                                    key={rec.id}
+                                    className="bg-white rounded-xl p-4 shadow-sm border hover:shadow-md transition"
+                                >
+                                    <h3 className="text-lg font-semibold mb-1">
+                                        {resourceName}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {suggestedDate} —{" "}
+                                        {suggestedTimeslot === "FM"
+                                            ? "Morning (08-12)"
+                                            : "Afternoon (12-16)"}
+                                    </p>
+                                    <p className="text-sm text-gray-500 italic mb-4">
+                                        {rec.reason}
+                                    </p>
+                                    {rec.createdAt && (
+                                        <p className="text-xs text-gray-500 mt-2 mb-4">
+                                            Last updated{" "}
+                                            {formatDistanceToNow(
+                                                new Date(rec.createdAt),
+                                                { addSuffix: true }
+                                            )}
+                                        </p>
+                                    )}
+                                    <Button
+                                        onClick={() => {
+                                            setSelectedResource(resource);
+                                            setSelectedDateKey(suggestedDate);
+                                            setTimeOfDay(
+                                                suggestedTimeslot === "FM"
+                                                    ? "Morning"
+                                                    : "Afternoon"
+                                            );
+                                        }}
+                                    >
+                                        Book Recommendation
+                                    </Button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            ) : (
+                <p className="text-center text-gray-500 italic">
+                    No smart recommendations available right now.
+                </p>
+            )}
+
+            {/* === Resources Section ===  */}
             {[
                 { title: "Desks", list: desks },
                 { title: "Meeting Rooms", list: meetingRooms },
@@ -366,6 +543,7 @@ export default function BookingsPage() {
                     )
             )}
 
+            {/* === BOOKING MODAL === */}
             {selectedResource && (
                 <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 max-w-lg w-full space-y-6 border shadow-xl">

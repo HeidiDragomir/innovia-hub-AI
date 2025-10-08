@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251008071743_AddUserIdToAIRecommendation")]
+    partial class AddUserIdToAIRecommendation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -166,6 +169,10 @@ namespace backend.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Recommendation")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -583,37 +590,6 @@ namespace backend.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("backend.Models.AIRecommendation", b =>
-                {
-                    b.OwnsOne("backend.Models.RecommendationDetail", "Recommendation", b1 =>
-                        {
-                            b1.Property<int>("AIRecommendationId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("Date")
-                                .IsRequired()
-                                .HasColumnType("longtext");
-
-                            b1.Property<string>("ResourceName")
-                                .IsRequired()
-                                .HasColumnType("longtext");
-
-                            b1.Property<string>("Timeslot")
-                                .IsRequired()
-                                .HasColumnType("longtext");
-
-                            b1.HasKey("AIRecommendationId");
-
-                            b1.ToTable("AIRecommendations");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AIRecommendationId");
-                        });
-
-                    b.Navigation("Recommendation")
                         .IsRequired();
                 });
 

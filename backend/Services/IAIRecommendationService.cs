@@ -4,6 +4,6 @@ namespace backend.Services
 {
     public interface IAIRecommendationService
     {
-        Task<AIRecommendation> GetRecommendationAsync(string userId);
+        Task<IEnumerable<AIRecommendation>> GetRecommendationsAsync(string userId);
     }
 }

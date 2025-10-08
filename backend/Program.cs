@@ -46,6 +46,7 @@ builder.Services.AddScoped<IResourceService, ResourceService>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAiRepository, AiRepository>();
 builder.Services.AddScoped<IAIRecommendationService, AIRecommendationService>();
 
 builder.Services.AddControllers()

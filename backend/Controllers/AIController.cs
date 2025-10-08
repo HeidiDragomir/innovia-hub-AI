@@ -24,18 +24,18 @@ namespace backend.Controllers
         // GET: api/recommendations
         [HttpGet("recommendations")]
         [Authorize(Roles = "Admin,Member")]
-        public async Task<IActionResult> GetRecommendation()
+        public async Task<IActionResult> GetRecommendations()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId)) return Unauthorized("User not found");
 
-            var result = await _aiService.GetRecommendationAsync(userId);
+            var result = await _aiService.GetRecommendationsAsync(userId);
 
             if (result == null) return NotFound();
 
             // Push in real-time via SignalR
-            await _hubContext.Clients.User(userId).SendAsync("AIRecommendation", result);
+            await _hubContext.Clients.User(userId).SendAsync("AIRecommendations", result);
 
             return Ok(result);
         }
