@@ -1,10 +1,7 @@
-﻿using Azure;
-using backend.Models;
+﻿using backend.Models;
 using backend.Repositories;
-using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace backend.Services
 {
@@ -47,7 +44,7 @@ namespace backend.Services
                     .OrderByDescending(r => r.CreatedAt)
                     .FirstOrDefault();
 
-                // Allow 30 seconds cooldown
+                // Allow 20 seconds cooldown
                 if (lastRecommendation != null && (DateTime.UtcNow - lastRecommendation.CreatedAt).TotalSeconds < 20)
                 {
                     _logger.LogInformation("Returning recent AI recommendation for user {UserId}", userId);
@@ -280,7 +277,7 @@ namespace backend.Services
                         try
                         {
                             // Sometimes the model includes extra text around JSON.
-                            // It finds the first { and the last }, and extracts only the text between them
+                            // It finds the first [ and the last ], and extracts only the text between them
                             var start = text.IndexOf('[');
                             var end = text.LastIndexOf(']');
 

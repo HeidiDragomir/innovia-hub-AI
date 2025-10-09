@@ -74,6 +74,7 @@ export default function BookingsPage() {
         null
     );
 
+    const [pendingRecIds, setPendingRecIds] = useState<number[]>([]);
     const [bookedRecIds, setBookedRecIds] = useState<number[]>([]);
 
     const connectionRef = useRef<signalR.HubConnection | null>(null);
@@ -255,6 +256,18 @@ export default function BookingsPage() {
             };
 
             await createBooking(token, dto);
+            // Find matching recommendation for this resource
+            const rec = recommendations.find(
+                (r) => r.recommendation.resourceName === selectedResource.name
+            );
+
+            // Remove from pending (since modal closed)
+            if (rec) {
+                setPendingRecIds((prev) => prev.filter((id) => id !== rec.id));
+
+                // Mark as permanently booked
+                setBookedRecIds((prev) => [...prev, rec.id]);
+            }
             setSelectedResource(null);
             setSelectedDateKey(null);
             setTimeOfDay(null);
@@ -339,8 +352,10 @@ export default function BookingsPage() {
                         </h2>
                         <Button
                             onClick={async () => {
+                                setLoadingRec(true);
                                 const rec = await fetchRecommendations(token);
                                 setRecommendations(rec);
+                                setLoadingRec(false);
                             }}
                         >
                             <img
@@ -350,7 +365,7 @@ export default function BookingsPage() {
                                 height={20}
                                 className="inline-block"
                             />{" "}
-                            New AI Recommendation
+                            New AI Recommendations
                         </Button>
                     </div>
 
@@ -452,15 +467,20 @@ export default function BookingsPage() {
                                                     ? "Morning"
                                                     : "Afternoon"
                                             );
-                                            setBookedRecIds((prev) => [
+                                            setPendingRecIds((prev) => [
                                                 ...prev,
                                                 rec.id,
                                             ]);
                                         }}
-                                        disabled={bookedRecIds.includes(rec.id)}
+                                        disabled={
+                                            pendingRecIds.includes(rec.id) ||
+                                            bookedRecIds.includes(rec.id)
+                                        }
                                     >
                                         {bookedRecIds.includes(rec.id)
                                             ? "Booked"
+                                            : pendingRecIds.includes(rec.id)
+                                            ? "Booking in progress..."
                                             : "Book Recommendation"}
                                     </Button>
                                 </div>
@@ -584,6 +604,21 @@ export default function BookingsPage() {
                                     setSelectedResource(null);
                                     setSelectedDateKey(null);
                                     setTimeOfDay(null);
+                                    // Remove pending status for the recommendation associated with this modal
+                                    setPendingRecIds((prev) =>
+                                        prev.filter((id) => {
+                                            const relatedRec =
+                                                recommendations.find(
+                                                    (r) =>
+                                                        r.recommendation
+                                                            .resourceName ===
+                                                        selectedResource?.name
+                                                );
+                                            return relatedRec
+                                                ? id !== relatedRec.id
+                                                : true;
+                                        })
+                                    );
                                 }}
                             >
                                 Cancel
