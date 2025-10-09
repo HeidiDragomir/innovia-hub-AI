@@ -1,39 +1,105 @@
-# Om
-Detta projekt är ett bokningssystem för ett coworkingcenter där man kan boka skrivbord, mötesrum, etc med realtidsuppdatering.
+# 💡 Innovia Hub
 
-# Teknisk information
-## Ramverk och bibliotek
-- React
-- Tailwind
-- ASP.NET Core Web API
-- MySQL
-- SignalR 
+## 🏢 General Information
 
-## Annat
-- Frontend körs på [http://localhost:5173](http://localhost:5173)
-- Backend körs på [http://localhost:5296](http://localhost:5296)
-- Använder RESTful API.
-- Använder JWT-token för autentisering.
+Innovia Hub is a coworking space booking system that allows members to reserve resources like desks, meeting rooms, VR headsets, and an AI server in real-time. The system features an AI-powered Smart Booking Assistant that analyzes booking patterns and provides intelligent recommendations to help users find the best available resources at optimal times.
 
-# Appbyggande
-## Nödvändiga installationer
-- .NET 8 eller 9
-- Node.js & npm
-- MySQL
+<br/>
 
-## Databas
-- Skapa en SQL connection på localhost:3306.
-- Gå in på "appsettings.json" i backend-mappen.
-- I strängen "DefaultConnection", ändra "User" till din connections användarnamn och "Password" till din connections lösenord.
-- Sätt en secretkey till minst 32 tecken.
+## 🛠️ Built with
 
-## Starta applikationen
+-   ⚛️ [React.js](https://reactjs.org/) --> frontend
+-   🌀 [Tailwind](https://tailwindcss.com/) --> styling
+-   🧱 [ASP.NET Core Web API](https://learn.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-9.0) --> backend
+-   🗄️ MySQL --> database
+-   🔐 JWT --> authentication
+-   🔁 [SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction?view=aspnetcore-9.0) --> real-time updates
+-   🤖 [OpenAI API](https://platform.openai.com/docs/overview) --> AI Recommendations
+
+<br/>
+
+## 🌐 Architecture Overview
+
+-   **Frontend** runs on: [http://localhost:5173](http://localhost:5173)
+-   **Backend** runs on: [https://localhost:7161](https://localhost:7161)
+-   **Database** runs on port **3306**:
+    -   Host: `127.0.0.1`
+    -   Port: `3306`
+    -   Database name: `innovia_hub`
+    -   User: (your MySQL username)
+    -   Password: (your MySQL password)
+-   The frontend communicates with the backend through RESTful API endpoints
+-   JWT tokens are used for secure user authentication
+-   SignalR provides real-time booking updates across all connected clients
+-   OpenAI API integration powers the Smart Booking Assistant
+
+<br/>
+
+## 🚀 Getting Started
+
+### 🔧 Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+-   .NET 8 or 9 SDK
+-   Node.js & npm
+-   MySQL Server (running on `localhost:3306`)
+-   OpenAI API Key (get one from [OpenAI Platform](https://platform.openai.com/docs/overview))
+
+### 🐘 Database Setup (MySQL)
+
+1. Start your MySQL server.
+2. Create the database and user.
+3. Confirm the connection string in `backend/appsettings.json`.
+    ```
+    "ConnectionStrings": {
+    "DefaultConnection": "server=127.0.0.1;port=3306;database=innovia_hub;user=YourName;password=YourPassword"
+    },
+    "Jwt": {
+    "SecretKey": ReplaceWithASecretKeyAtLeast32Chars!,
+    "Issuer": "InnoviaHub",
+    "Audience": "InnoviaHubUsers",
+    "ExpirationMinutes": 60
+    }
+    ```
+
+### 🔑 Environment Variables
+
+Create a file named `.env` in the `backend/` directory and add:
+
+```
+OPENAI_API_KEY=REPLACE_WITH_YOUR_OPENAI_KEY
+```
+
+⚠️ The `.env` file is required for OpenAI integration and should never be committed to Git.
+Make sure `.env` is included in `.gitignore`.
+
+### 📦 Clone the Repository
+
+```
+git clone git@github.com:HeidiDragomir/innovia-hub-AI.git
+cd innovia-hub-AI
+```
+
+### 🖥️ Running the Application
+
+#### ⚙️ Backend
+
 ```
 cd backend
-dotnet restore
 dotnet ef database update
 dotnet run
 ```
+
+-   The backend will start on https://localhost:7161
+-   The first startup will automatically seed:
+    -   Roles: Admin, Member
+    -   Users:
+        -   Admin: admin@innoviahub.com / Admin123!
+        -   Member: member@innoviahub.com / Member123!
+    -   Resource Types and Resources (Desks, Meeting Rooms, VR Sets, AI Server)
+
+### 🎨 Frontend
 
 ```
 cd frontend
@@ -41,185 +107,69 @@ npm install
 npm run dev
 ```
 
-## Användare
-För att boka måste du logga in. <br />
-Du kan skapa en ny användare eller logga in med admin kontot. <br />
-Admins kan använda admin tools genom att gå in på [http://localhost:5173/admin](http://localhost:5173/admin) <br />
+The application will be available at http://localhost:5173
 
-**Admin konto:** <br />
-**E-post: admin@innoviahub.com**, <br />
-**Lösenord: Admin123!**
+## 📊 Database Seeding
 
-# Endpoints
-<details>
+On application startup, the backend automatically seeds:
 
-<summary> Authentication endpoints </summary> 
+-   Roles and Users using `DbSeeder.SeedRolesAndUsersAsync()`
+    -   Adds Admin and Member roles if missing.
+    -   Creates `admin@innoviahub.com` and `member@innoviahub.com` test users.
+-   Resource Types & Resources via `OnModelCreating()` in `ApplicationDbContext`:
+    -   15 Desks (Desk 1–Desk 15)
+    -   4 Meeting Rooms
+    -   4 VR Headsets
+    -   1 AI Server
 
-**GET**
-**/api/auth/health**
+## 🔑 Using the Application
 
-Returnerar statuskod 400 om API:et fungerar.
+**For Members**
 
-**POST**
-**/api/auth/register** <br />
-Body: <br />
-string Email, <br />
-string FirstName, <br />
-string LastName, <br />
-string Password, <br />
-string ConfirmPassword
+1.  Sign in with your account or create a new one
+2.  Browse available resources on the `Booking` page
+3.  Get AI recommendations for optimal booking times and resources
+4.  Make a booking by selecting a resource, date and time
+5.  View your bookings in your dashboard, `MyBookings` page
+6.  Real-time updates keep you informed when resource availability changes
 
-Skapar en ny användare med rollen "Member".
+**For Administrators**
 
-**POST**
-**/api/auth/login** <br />
-Body: <br /> 
-string Email, <br /> 
-string Password 
+1.  Sign in with the admin account
+2.  Access admin tools at `/admin`
+3.  Manage resources (add, edit or remove)
+4.  View all bookings and user activity
+5.  Monitor resource utilization patterns
+6.  The system prevents double-bookings automatically
 
-Loggar in användare och returnerar JWT-token.
+## 📬 API Documentation
 
-**POST**
-**api/auth/logout**
+🔗 [Postman Documentation:] (to be added later)
 
-Loggar ut användare.
+## 🔧 Troubleshooting
 
-**GET**
-**api/auth/profile** <br />
-Autentisering: Member
+**Database connection issues:**
+-   Verify MySQL is running on port `3306`
+-   Check username and password in `appsettings.json`
+-   Ensure the MySQL user has proper permissions
 
-Returnerar hela objektet av användaren som loggar in.
+**Migration errors:**
+-   Delete existing database and migrations, then run `dotnet ef database update `again
 
-**PUT**
-**/api/auth/profile** <br />
-Autentisering: Member <br />
-Body: <br />
-string FirstName <br /> 
-string LastName 
+**Frontend not connecting to backend:**
+-   Verify backend is running on `https://localhost:7161`
+-   Clear browser cache and restart the frontend
 
-Ändrar FirstName och LastName av användaren som loggar in.
+**AI recommendations not working:**
+-   Verify your OpenAI API key in the `.env` file
+-   Check that the `.env` file is in the backend folder
+-   Ensure you have available credits on your OpenAI account
 
-**POST**
-**/api/auth/refresh-token** <br />
-Autentisering: Member <br />
-Body: <br />
-string Token
+### 👩‍💻 Contact
 
-Uppdaterar och returnerar token.
+Email: [@HeidiDragomir](https://github.com/HeidiDragomir)
+LinkedIn: [Marinela-Adelheid Dragomir](https://www.linkedin.com/in/heidi-dragomir/)
 
-</details>
+### 📄 License
 
-<details>
-
-<summary> Booking endpoints </summary> 
-
-
-**GET**
-**/api/bookings/** <br />
-Autentisering: Admin, Member <br />
-
-Returnerar alla bokningar.
-
-**GET**
-**/api/bookings/{bookingId}** <br />
-Autentisering: Admin, Member
-
-Returnerar bokning som motsvarar id.
-
-**GET**
-**/api/bookings/myBookings** <br />
-Autentisering: Admin, Member <br />
-Body: <br />
-bool includeExpiredBookings (default är false)
-
-Returnerar alla aktiva bokningar som tillhör användaren. Måste specificera om man vill inkludera inaktiva bokningar.
-
-**GET**
-**/api/bookings/getByResource/{resourceId}** <br />
-Autentisering: Admin, Member <br />
-Body: <br />
-bool includeExpiredBookings (default är false)
-
-Returnerar alla aktiva bokningar som tillhör en resurs. Måste specificera om man vill inkludera inaktiva bokningar.
-
-**POST**
-**/api/bookings** <br />
-Autentisering: Admin, Member <br />
-Body: <br /> 
-int ResourceId <br /> 
-DateTime BookingTime <br />
-string Timeslot (måste vara "FM" eller "EF")
-
-Skapar en bokning. Tiden på "BookingTime" ersätts av "8:00" eller "12:00" beroende på timeslot.
-
-**PUT**
-**/api/bookings** <br /> 
-Autentisering: Admin <br />
-Body: <br />
-int BookingId, <br />
-bool IsActive, <br /> 
-DateTime BookingDate, <br />
-DateTime EndDate, <br />
-string UserId, <br />
-int ResourceId
-
-Uppdaterar bokning.
-
-**POST**
-**/api/bookings/cancel/{bookingId}** <br />
-Autentisering: Admin, Member <br />
-
-Tar bort bokning som motsvarar "bookingId". <br />
-Members kan bara ta bort sina egna bokningar och Admins kan ta bort vilken bokning som helst. <br />
-Bokningar som har gått ut kan inte tas bort.
-
-**POST**
-**/api/bookings/delete/{bookingId}** <br />
-Autentisering: Admin
-
-Tar bort bokning.
-
-</details>
-
-<details>
-
-<summary> Resource endpoints </summary> 
-
-**GET**
-**/api/bookings/resources** <br />
-Autentisering: Admin, Member
-
-Returnerar alla resurser.
-
-**GET**
-**api/resources/{resourceId}** <br />
-Autentisering: Admin, Member
-
-Returnerar resurs som motsvarar id.
-
-**POST**
-**api/resources** <br />
-Autentisering: Admin <br />
-Body: <br />
-int ResourceTypeId (1 = DropInDesk, 2 = MeetingRoom, 3 = VRset, 4 = AIserver), <br />
-string Name
-
-Skapar en ny resurs.
-
-**PUT**
-**api/resources/{resourceId}** <br />
-Autentisering: Admin <br />
-Body: <br />
-int ResourceTypeId (1 = DropInDesk, 2 = MeetingRoom, 3 = VRset, 4 = AIserver), <br />
-string Name, <br />
-bool IsBooked
-
-Uppdaterar resursen som motsvarar id.
-
-**DELETE**
-**api/resources/{resourceId}** <br />
-Autentisering: Admin
-
-Tar bort resurs.
-
-</details>
+Distributed under the MIT License. See [LICENSE](https://choosealicense.com/licenses/mit/) for more information.

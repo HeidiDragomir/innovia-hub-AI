@@ -147,13 +147,15 @@ namespace backend.Services
         private async Task<object> BuildPromptAsync(string userId)
         {
             // Step 1: Fetch all bookings of the user from the database including expired
-            var bookings = await _bookingRepo.GetMyBookingsAsync(userId, includeExpiredBookings: true);
+            var userBookings = await _bookingRepo.GetMyBookingsAsync(userId, includeExpiredBookings: true);
+
+            var allBookings = await _bookingRepo.GetAllAsync();
 
             TimeZoneInfo localZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm");
             var nowStockholm = TimeZoneInfo.ConvertTime(DateTime.UtcNow, localZone);
 
             // Step 2: Take the 5 most recent bookings to give AI context
-            var recentBookings = bookings
+            var recentBookings = userBookings
                 .OrderByDescending(b => b.BookingDate)
                 .Take(5)
                 .Select(b => new
@@ -172,8 +174,8 @@ namespace backend.Services
             {
                 r.Name,
                 Type = r.ResourceType.Name,
-                BookedSlots = bookings
-                .Where(b => b.ResourceId == r.ResourceId)
+                BookedSlots = allBookings
+                .Where(b => b.ResourceId == r.ResourceId && b.IsActive)
                 .Select(b => new
                 {
                     Date = TimeZoneInfo.ConvertTimeFromUtc(b.BookingDate, localZone).ToString("yyyy-MM-dd"),

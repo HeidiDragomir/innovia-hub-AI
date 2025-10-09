@@ -74,6 +74,8 @@ export default function BookingsPage() {
         null
     );
 
+    const [bookedRecIds, setBookedRecIds] = useState<number[]>([]);
+
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const hubUrl = useMemo(
         () => `${import.meta.env.VITE_API_BASE_URL}/bookingHub`,
@@ -176,39 +178,21 @@ export default function BookingsPage() {
             .withAutomaticReconnect()
             .build();
 
-        connection.on(
-            "BookingCreated",
-            (data: { resourceName: string; userId: string }) => {
-                if (!data?.resourceName) return;
-
-                if (data.userId === user.id) {
-                    toast.success(
-                        `You successfully booked ${data.resourceName}!`
-                    );
-                } else {
-                    toast(
-                        `A new booking for ${data.resourceName} was made by another user.`,
-                        {
-                            icon: "📢",
-                        }
-                    );
-                }
-                refreshData();
+        connection.on("BookingCreated", (booking: Booking) => {
+            if (booking.userId === user.id) {
+                toast.success(
+                    `You successfully booked ${booking.resourceName}!`
+                );
+            } else {
+                toast(
+                    `A new booking for ${booking.resourceName} was made by another user.`,
+                    {
+                        icon: "📢",
+                    }
+                );
             }
-        );
-
-        // connection.on("BookingUpdated", (booking: Booking) => {
-        //     if (booking.userId === user.id) {
-        //         toast.success(
-        //             `Your booking for ${booking.resourceName} was updated!`
-        //         );
-        //     } else {
-        //         toast(`A booking for ${booking.resourceName} was updated.`, {
-        //             icon: "🔄",
-        //         });
-        //     }
-        //     refreshData();
-        // });
+            refreshData();
+        });
 
         connection.on("BookingCancelled", (booking: Booking) => {
             if (booking.userId === user.id) {
@@ -222,19 +206,6 @@ export default function BookingsPage() {
             }
             refreshData();
         });
-
-        // connection.on("BookingDeleted", (booking: Booking) => {
-        //     if (booking.userId === user.id) {
-        //         toast.error(
-        //             `Your booking for ${booking.resourceName} was permanently deleted!`
-        //         );
-        //     } else {
-        //         toast.error(
-        //             `A booking for ${booking.resourceName} was deleted.`
-        //         );
-        //     }
-        //     refreshData();
-        // });
 
         connectionRef.current = connection;
 
@@ -350,14 +321,21 @@ export default function BookingsPage() {
                 <div className="flex justify-center items-center h-40">
                     <AnimatedSimpleLoading />
                     <p className="text-gray-500">
-                        Generating recommendation...
+                        Generating recommendations ...
                     </p>
                 </div>
             ) : recommendations.length > 0 ? (
                 <div className="bg-blue-50 rounded-2xl p-6 shadow-sm border border-blue-200 mb-12">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-semibold">
-                            🤖 Smart Booking Assistant
+                    <div className="md:flex md:justify-between items-center mb-4">
+                        <h2 className="text-2xl font-semibold py-6 md:py-0 flex items-center gap-4">
+                            <img
+                                src="/robot.png"
+                                alt="Robot icon"
+                                width={40}
+                                height={40}
+                                className="inline-block"
+                            />{" "}
+                            Smart Booking Assistant
                         </h2>
                         <Button
                             onClick={async () => {
@@ -365,7 +343,14 @@ export default function BookingsPage() {
                                 setRecommendations(rec);
                             }}
                         >
-                            🔄 New AI Recommendation
+                            <img
+                                src="/refresh.png"
+                                alt="Refresh icon"
+                                width={20}
+                                height={20}
+                                className="inline-block"
+                            />{" "}
+                            New AI Recommendation
                         </Button>
                     </div>
 
@@ -377,14 +362,7 @@ export default function BookingsPage() {
                             const suggestedTimeslot =
                                 rec.recommendation.timeslot;
 
-                            // Determine suggested timeslot
-                            // const suggestedTimeslot = timeStr.includes(
-                            //     "08:00-12:00"
-                            // )
-                            //     ? "FM"
-                            //     : "EF";
-
-                            // // Default suggestion date handling
+                            // Default suggestion date handling
                             // let suggestedDate = todayKeySthlm();
                             const hourNow = currentSthlmHour();
 
@@ -474,9 +452,16 @@ export default function BookingsPage() {
                                                     ? "Morning"
                                                     : "Afternoon"
                                             );
+                                            setBookedRecIds((prev) => [
+                                                ...prev,
+                                                rec.id,
+                                            ]);
                                         }}
+                                        disabled={bookedRecIds.includes(rec.id)}
                                     >
-                                        Book Recommendation
+                                        {bookedRecIds.includes(rec.id)
+                                            ? "Booked"
+                                            : "Book Recommendation"}
                                     </Button>
                                 </div>
                             );
