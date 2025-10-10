@@ -96,11 +96,15 @@ const MyBookings: React.FC = () => {
         connection.on("BookingUpdated", (data: Booking) => {
             if (data.userId === user.id) {
                 toast.success(
-                    `Your booking for ${data.resourceName} was updated!`
+                    `Your booking for ${data.resourceName} was updated!`,
+                    {
+                        duration: 5000
+                    }
                 );
             } else {
                 toast(`A booking for ${data.resourceName} was updated.`, {
                     icon: "🔄",
+                    duration: 5000
                 });
             }
             refreshData();
@@ -110,10 +114,12 @@ const MyBookings: React.FC = () => {
             if (data.userId === user.id) {
                 toast(`You cancelled your booking for ${data.resourceName}.`, {
                     icon: "⚠️",
+                    duration: 5000
                 });
             } else {
                 toast(`A booking for ${data.resourceName} was cancelled.`, {
                     icon: "⚠️",
+                    duration: 5000
                 });
             }
             refreshData();

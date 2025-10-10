@@ -110,7 +110,9 @@ export default function BookingsPage() {
         return map;
     }, [allBookings]);
 
-    //Fetching bookings & recources
+    {
+        /* === FETCH BOOKINGS & RESOURCES === */
+    }
     useEffect(() => {
         if (!token || !user?.id) return;
         (async () => {
@@ -131,7 +133,9 @@ export default function BookingsPage() {
         })();
     }, [token]);
 
-    // Fetch the recommendations
+    {
+        /* === FETCH AI RECOMMENDATIONS === */
+    }
     useEffect(() => {
         // Run only once per valid token
         if (!token || fetchedRef.current) return;
@@ -170,7 +174,9 @@ export default function BookingsPage() {
         }
     };
 
-    //Setup SignalR for real time updating
+    {
+        /* === SETUP SIGNALR FOR REAL TIME UPDATING === */
+    }
     useEffect(() => {
         if (!token) return;
 
@@ -182,13 +188,17 @@ export default function BookingsPage() {
         connection.on("BookingCreated", (booking: Booking) => {
             if (booking.userId === user.id) {
                 toast.success(
-                    `You successfully booked ${booking.resourceName}!`
+                    `You successfully booked ${booking.resourceName}!`,
+                    {
+                        duration: 5000,
+                    }
                 );
             } else {
                 toast(
                     `A new booking for ${booking.resourceName} was made by another user.`,
                     {
                         icon: "📢",
+                        duration: 5000,
                     }
                 );
             }
@@ -198,11 +208,15 @@ export default function BookingsPage() {
         connection.on("BookingCancelled", (booking: Booking) => {
             if (booking.userId === user.id) {
                 toast(
-                    `You cancelled your booking for ${booking.resourceName}.`
+                    `You cancelled your booking for ${booking.resourceName}.`,
+                    {
+                        duration: 5000,
+                    }
                 );
             } else {
                 toast(`A booking for ${booking.resourceName} was cancelled.`, {
                     icon: "⚠️",
+                    duration: 5000,
                 });
             }
             refreshData();
@@ -224,7 +238,9 @@ export default function BookingsPage() {
         };
     }, [token, user?.id]);
 
-    //Function to handle booking
+    {
+        /* === FUNCTION TO HANDLE BOOKING === */
+    }
     const handleBook = async () => {
         if (!token || !selectedResource || !selectedDateKey || !timeOfDay)
             return;
@@ -377,8 +393,6 @@ export default function BookingsPage() {
                             const suggestedTimeslot =
                                 rec.recommendation.timeslot;
 
-                            // Default suggestion date handling
-                            // let suggestedDate = todayKeySthlm();
                             const hourNow = currentSthlmHour();
 
                             // If AI suggests Morning but morning has passed, move to tomorrow

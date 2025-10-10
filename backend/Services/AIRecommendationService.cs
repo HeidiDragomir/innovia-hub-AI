@@ -39,18 +39,6 @@ namespace backend.Services
             try
             {
 
-                // Step 0: Check recent recommendation (cooldown)
-                var lastRecommendation = (await _aiRepo.GetByUserId(userId))
-                    .OrderByDescending(r => r.CreatedAt)
-                    .FirstOrDefault();
-
-                // Allow 20 seconds cooldown
-                if (lastRecommendation != null && (DateTime.UtcNow - lastRecommendation.CreatedAt).TotalSeconds < 20)
-                {
-                    _logger.LogInformation("Returning recent AI recommendation for user {UserId}", userId);
-                    return new List<AIRecommendation> { lastRecommendation };
-                }
-
                 // Step 1: Build the prompt that will be sent to OpenAI
                 // It will contain recent bookings and available resources
                 var requestBody = await BuildPromptAsync(userId);

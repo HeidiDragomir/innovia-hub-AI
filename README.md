@@ -51,6 +51,7 @@ Before you begin, make sure you have the following installed:
 1. Start your MySQL server.
 2. Create the database and user.
 3. Confirm the connection string in `backend/appsettings.json`.
+
     ```
     "ConnectionStrings": {
     "DefaultConnection": "server=127.0.0.1;port=3306;database=innovia_hub;user=YourName;password=YourPassword"
@@ -109,6 +110,8 @@ npm run dev
 
 The application will be available at http://localhost:5173
 
+<br/>
+
 ## 📊 Database Seeding
 
 On application startup, the backend automatically seeds:
@@ -121,6 +124,8 @@ On application startup, the backend automatically seeds:
     -   4 Meeting Rooms
     -   4 VR Headsets
     -   1 AI Server
+
+<br/>
 
 ## 🔑 Using the Application
 
@@ -142,34 +147,46 @@ On application startup, the backend automatically seeds:
 5.  Monitor resource utilization patterns
 6.  The system prevents double-bookings automatically
 
+<br/>
+
 ## 📬 API Documentation
 
-🔗 [Postman Documentation:] (to be added later)
+🔗 [Postman Documentation](https://documenter.getpostman.com/view/22983418/2sB3QKsAEs)
+
+<br/>
 
 ## 🔧 Troubleshooting
 
 **Database connection issues:**
+
 -   Verify MySQL is running on port `3306`
 -   Check username and password in `appsettings.json`
 -   Ensure the MySQL user has proper permissions
 
 **Migration errors:**
+
 -   Delete existing database and migrations, then run `dotnet ef database update `again
 
 **Frontend not connecting to backend:**
+
 -   Verify backend is running on `https://localhost:7161`
 -   Clear browser cache and restart the frontend
 
 **AI recommendations not working:**
+
 -   Verify your OpenAI API key in the `.env` file
 -   Check that the `.env` file is in the backend folder
 -   Ensure you have available credits on your OpenAI account
 
-### 👩‍💻 Contact
+<br/>
+
+## 👩‍💻 Contact
 
 Email: [@HeidiDragomir](https://github.com/HeidiDragomir)
 LinkedIn: [Marinela-Adelheid Dragomir](https://www.linkedin.com/in/heidi-dragomir/)
 
-### 📄 License
+<br/>
+
+## 📄 License
 
 Distributed under the MIT License. See [LICENSE](https://choosealicense.com/licenses/mit/) for more information.
