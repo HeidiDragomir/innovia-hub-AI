@@ -3,6 +3,7 @@
 // API Configuration
 export const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 export const ADMIN_API_BASE_URL = API_BASE_URL;
+export const DEVICE_API_URL = "http://localhost:5104";
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -62,6 +63,12 @@ export const NAV_ITEMS = [
         label: "Resources",
         icon: "MdBusiness",
         path: "/admin/resources",
+    },
+    {
+        id: "devices",
+        label: "Devices",
+        icon: "MdSensors",
+        path: "/admin/devices",
     },
 ] as const;
 

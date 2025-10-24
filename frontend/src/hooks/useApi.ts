@@ -21,6 +21,7 @@ export const queryKeys = {
         ["bookings", filters] as const,
     booking: (id: number) => ["booking", id] as const,
     bookingStats: ["bookingStats"] as const,
+    devices: ["devices"] as const,
     systemLogs: ["systemLogs"] as const,
 };
 
@@ -54,6 +55,8 @@ export const useDashboardStats = () => {
                     totalBookings: 2156,
                     activeBookings: 89,
                     totalResources: 45,
+                    totalDevices: 10,
+                    activeDevices: 10,
                     availableResources: 42,
                     bookingStats: {
                         totalBookings: 2156,
@@ -637,6 +640,79 @@ export const useBookingStats = () => {
             }
             return failureCount < 3;
         },
+    });
+};
+
+// ---- DEVICE HOOKS ---- //
+export const useDevices = () => {
+    return useQuery({
+        queryKey: [...queryKeys.devices],
+        queryFn: async () => {
+            try {
+                const response = await apiService.getDevices();
+                if (!response.success) {
+                    throw new Error(response.message);
+                }
+
+                return response.data;
+            } catch (error) {
+                console.error("Error fetching devices:", error);
+                throw error;
+            }
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: (failureCount, error) => {
+            // Don't retry on authentication errors
+            if (
+                error.message.includes("Unauthorized") ||
+                error.message.includes("Session expired")
+            ) {
+                return false;
+            }
+            return failureCount < 3;
+        },
+    });
+};
+
+// Fetch latest metrics for devices
+export const useDevicesWithLatestMetrics = () => {
+    const devicesQuery = useDevices(); // get devices list
+
+    return useQuery({
+        queryKey: [...queryKeys.devices, "latestMetrics"],
+        queryFn: async () => {
+            if (!devicesQuery.data?.items) return [];
+
+            // Fetch latest metrics for each device in parallel
+            const devicesWithMetrics = await Promise.all(
+                devicesQuery.data.items.map(async (device) => {
+                    try {
+                        const res = await fetch(
+                            `http://localhost:5104/portal/${device.tenantId}/devices/${device.id}/latest`
+                        );
+                        if (!res.ok) return device;
+
+                        const latestJson = await res.json();
+                        return {
+                            ...device,
+                            latest: { metrics: latestJson.metrics },
+                        };
+                    } catch (err) {
+                        console.error(
+                            "Failed to fetch latest metrics for device:",
+                            device.id,
+                            err
+                        );
+                        return device;
+                    }
+                })
+            );
+
+            return devicesWithMetrics;
+        },
+        enabled: !!devicesQuery.data, // only run after devices list is loaded
+        staleTime: 60 * 1000, // cache for 1 minute
+        refetchInterval: 10 * 1000, // refresh every 10 seconds
     });
 };
 

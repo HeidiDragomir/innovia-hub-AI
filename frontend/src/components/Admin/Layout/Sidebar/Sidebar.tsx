@@ -7,6 +7,7 @@ import {
   MdPeople,
   MdEvent,
   MdBusiness,
+  MdSensors,
   MdAnalytics,
   MdSettings,
 } from "react-icons/md";
@@ -25,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose }) => {
     MdPeople,
     MdEvent,
     MdBusiness,
+    MdSensors,
     MdAnalytics,
     MdSettings,
   };

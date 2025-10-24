@@ -8,6 +8,7 @@ import Dashboard from "./pages/Admin/Dashboard";
 import Users from "./pages/Admin/Users";
 import Bookings from "./pages/Admin/Bookings";
 import Resources from "./pages/Admin/Resources";
+import Devices from "./pages/Admin/Devices.tsx"
 import AdminProtectedRoute from "./components/Admin/AdminProtectedRoute";
 import AdminWrapper from "./components/Admin/AdminWrapper";
 import "./App.css";
@@ -80,6 +81,10 @@ function App() {
                                     <Route
                                         path="resources"
                                         element={<Resources />}
+                                    />
+                                    <Route
+                                        path="devices"
+                                        element={<Devices />}
                                     />
                                     <Route
                                         path="*"
