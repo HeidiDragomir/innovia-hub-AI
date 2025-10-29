@@ -164,10 +164,11 @@ if (!app.Environment.IsEnvironment("CI") && !app.Environment.IsDevelopment())
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
+app.UseCors("FrontendPolicy");
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseCors("FrontendPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
