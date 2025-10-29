@@ -164,13 +164,14 @@ if (!app.Environment.IsEnvironment("CI") && !app.Environment.IsDevelopment())
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseCors("FrontendPolicy");
 
-app.MapHub<BookingHub>("/bookingHub");
-
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
-app.MapControllers().RequireCors("FrontendPolicy");
+
+app.MapControllers();
+app.MapHub<BookingHub>("/bookingHub");
 app.Run();
