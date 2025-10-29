@@ -52,6 +52,7 @@ const Devices = () => {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(
         null
     );
+    console.log("alerts:", alerts);
 
     // Fetch devices with latest metrics using the custom hook
     const {

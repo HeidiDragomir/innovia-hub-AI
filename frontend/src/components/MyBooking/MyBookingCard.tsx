@@ -14,6 +14,7 @@ export default function MyBookingCard({
     onEdit,
 }: MyBookingCardProps) {
     const [startDateString, setStartDateString] = useState("");
+    console.log(startDateString);
 
     //Format time to Swedish time
     function formatSwedish(dateString: string) {

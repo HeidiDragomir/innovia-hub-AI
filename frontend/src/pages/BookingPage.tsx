@@ -83,6 +83,8 @@ export default function BookingsPage() {
 		[]
 	);
 
+	console.log(loading);
+
 	type DaySlots = { FM: boolean; EF: boolean };
 
 	const slotMap = useMemo(() => {
