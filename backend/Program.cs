@@ -133,6 +133,7 @@ else
 // Add JWT Token Manager
 builder.Services.AddScoped<IJwtTokenManager, JwtTokenManager>();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -144,13 +145,15 @@ if (app.Environment.IsDevelopment())
 
 
 //Seed default roles and users
-if (!app.Environment.IsEnvironment("CI"))
+if (!app.Environment.IsEnvironment("CI") && !app.Environment.IsDevelopment())
 {
     using (var scope = app.Services.CreateScope())
     {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync(); // ensures tables exist before seeding
+
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
         await DbSeeder.SeedRolesAndUsersAsync(roleManager, userManager);
     }
 }
