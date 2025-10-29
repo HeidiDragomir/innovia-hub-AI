@@ -19,7 +19,6 @@ import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import ErrorBoundary from "./components/ErrorBoundary/errorBoundary.tsx";
 
-
 function App() {
 	return (
 		<div className="App min-h-screen flex flex-col">
