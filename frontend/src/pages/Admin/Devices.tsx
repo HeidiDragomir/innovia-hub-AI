@@ -59,11 +59,15 @@ const Devices = () => {
 		data: devicesData,
 		isLoading,
 		error,
+		isSuccess,
+		isFetching,
 	} = useDevicesWithLatestMetrics();
 
 	if (error) {
 		throw error; // This will trigger ErrorBoundary fallback
 	}
+
+	const hasLoaded = isSuccess && !isFetching;
 
 	// When API data is fetched store it in local devices state
 	useEffect(() => {
@@ -189,7 +193,7 @@ const Devices = () => {
 					<div className="flex justify-center items-center h-64">
 						<AnimatedSimpleLoading />
 					</div>
-				) : !devices || devices.length === 0 ? (
+				) : hasLoaded && devicesData?.length === 0 ? (
 					<div className="col-span-full p-12 text-center text-gray-500">
 						<FiCpu className="w-12 h-12 mx-auto mb-4 text-gray-400" />
 						<p>No devices found.</p>

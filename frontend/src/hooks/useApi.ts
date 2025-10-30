@@ -720,7 +720,6 @@ export const useDevicesWithLatestMetrics = () => {
 
 			return devicesWithMetrics;
 		},
-		enabled: !devicesQuery.isLoading, // allow run even when data missing but not while loading
 		staleTime: 60 * 1000, // cache for 1 minute
 		refetchInterval: 10 * 1000, // refresh every 10 seconds
 	});
