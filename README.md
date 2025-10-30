@@ -4,6 +4,10 @@
 
 Innovia Hub is a coworking space booking system that allows members to reserve resources like desks, meeting rooms, VR headsets, and an AI server in real-time. The system features an AI-powered Smart Booking Assistant that analyzes booking patterns and provides intelligent recommendations to help users find the best available resources at optimal times.
 
+It also features IoT functionality through a Devices page, where administrators can view and manage connected smart devices within the coworking environment.
+
+The solution demonstrates how AI, IoT and real-time communication can be combined into a cohesive and user-friendly resource management platform.
+
 <br/>
 
 ## 🛠️ Built with
@@ -15,6 +19,26 @@ Innovia Hub is a coworking space booking system that allows members to reserve r
 -   🔐 JWT --> authentication
 -   🔁 [SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction?view=aspnetcore-9.0) --> real-time updates
 -   🤖 [OpenAI API](https://platform.openai.com/docs/overview) --> AI Recommendations
+-   🌐 IoT Integration --> devices page for connected smart devices
+
+<br/>
+
+## 🌟 Features You Personally Developed
+
+1. 🤖 AI Smart Booking Assistant
+
+    - Integrated with the OpenAI API to analyze user booking patterns
+    - Suggests optimal booking times and available resources
+    - Built into the backend and connected to the React frontend
+
+2. 📡 IoT Functionality (Devices Page)
+
+    - Displays connected IoT devices such as smart sensors
+    - Real-time device status updates using SignalR
+    - Enables admins to view and monitor active or inactive devices
+
+3. 🔔 Enhanced Real-time System Updates
+    - Improved SignalR implementation to ensure instant synchronization across clients when a resource is booked, released or updated.
 
 <br/>
 
@@ -112,6 +136,34 @@ The application will be available at http://localhost:5173
 
 <br/>
 
+## 🧪 Testing the Application
+
+You can log in using the pre-seeded test accounts:
+
+| Role   | Email                 | Password   |
+| ------ | --------------------- | ---------- |
+| Admin  | admin@innoviahub.com  | Admin123!  |
+| Member | member@innoviahub.com | Member123! |
+
+### Test Scenarios
+
+**For Members:**
+
+1.  Log in as a Member.
+2.  Browse available desks, meeting rooms, or devices.
+3.  Use the AI Smart Booking Assistant to get booking recommendations.
+4.  Create and cancel bookings.
+5.  Observe real-time updates when availability changes.
+
+**For Admins:**
+
+1.  Log in as an Admin.
+2.  Navigate to `/admin`.
+3.  Manage users, resources, and IoT devices.
+4.  View all bookings and real-time activity updates.
+
+<br/>
+
 ## 📊 Database Seeding
 
 On application startup, the backend automatically seeds:
@@ -124,28 +176,6 @@ On application startup, the backend automatically seeds:
     -   4 Meeting Rooms
     -   4 VR Headsets
     -   1 AI Server
-
-<br/>
-
-## 🔑 Using the Application
-
-**For Members**
-
-1.  Sign in with your account or create a new one
-2.  Browse available resources on the `Booking` page
-3.  Get AI recommendations for optimal booking times and resources
-4.  Make a booking by selecting a resource, date and time
-5.  View your bookings in your dashboard, `MyBookings` page
-6.  Real-time updates keep you informed when resource availability changes
-
-**For Administrators**
-
-1.  Sign in with the admin account
-2.  Access admin tools at `/admin`
-3.  Manage resources (add, edit or remove)
-4.  View all bookings and user activity
-5.  Monitor resource utilization patterns
-6.  The system prevents double-bookings automatically
 
 <br/>
 

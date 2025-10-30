@@ -88,8 +88,15 @@ function App() {
 										element={
 											<ErrorBoundary
 												fallback={
-													<div className="col-span-full p-12 text-center text-gray-500">
-														Failed to load devices.
+													<div className="p-12 text-center text-gray-700">
+														<div className="text-6xl mb-4">
+															⚠️
+														</div>
+														<p className="text-lg font-semibold">
+															Devices are offline.
+															Please try again
+															later.
+														</p>
 													</div>
 												}
 											>
