@@ -159,7 +159,6 @@ if (!app.Environment.IsEnvironment("CI") && !app.Environment.IsDevelopment())
     }
 }
 
-
 // Add middleware
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
