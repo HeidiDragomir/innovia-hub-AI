@@ -179,7 +179,7 @@ The application is fully deployed using Azure and Netlify for a scalable and clo
 
 -   Environment variables are configured in the Netlify dashboard for API communication.
 
-### Backend & Database - [Azure](https://azure.microsoft.com/en-us/free/students)
+### Backend & Database --> [Azure](https://azure.microsoft.com/en-us/free/students)
 
 -   The ASP.NET Core Web API is hosted using `Azure App Service`.
 
