@@ -2,7 +2,7 @@
 
 ## 🏢 General Information
 
-Innovia Hub is a coworking space booking system that allows members to reserve resources like desks, meeting rooms, VR headsets, and an AI server in real-time. The system features an AI-powered Smart Booking Assistant that analyzes booking patterns and provides intelligent recommendations to help users find the best available resources at optimal times.
+Innovia Hub is a coworking space booking system that allows members to reserve resources like desks, meeting rooms, VR headsets and an AI server in real-time. The system features an AI-powered Smart Booking Assistant that analyzes booking patterns and provides intelligent recommendations to help users find the best available resources at optimal times.
 
 It also features IoT functionality through a Devices page, where administrators can view and manage connected smart devices within the coworking environment.
 
@@ -23,7 +23,7 @@ The solution demonstrates how AI, IoT and real-time communication can be combine
 
 <br/>
 
-## 🌟 Features You Personally Developed
+## 🌟 Features I Personally Developed
 
 1. 🤖 AI Smart Booking Assistant
 
@@ -112,6 +112,7 @@ cd innovia-hub-AI
 
 ```
 cd backend
+dotnet restore
 dotnet ef database update
 dotnet run
 ```
@@ -150,7 +151,7 @@ You can log in using the pre-seeded test accounts:
 **For Members:**
 
 1.  Log in as a Member.
-2.  Browse available desks, meeting rooms, or devices.
+2.  Browse available desks, meeting rooms or devices.
 3.  Use the AI Smart Booking Assistant to get booking recommendations.
 4.  Create and cancel bookings.
 5.  Observe real-time updates when availability changes.
@@ -159,8 +160,36 @@ You can log in using the pre-seeded test accounts:
 
 1.  Log in as an Admin.
 2.  Navigate to `/admin`.
-3.  Manage users, resources, and IoT devices.
+3.  Manage users, resources and IoT devices.
 4.  View all bookings and real-time activity updates.
+
+<br/>
+
+## ☁️ Deployment
+
+The application is fully deployed using Azure and Netlify for a scalable and cloud-based setup.
+
+### Frontend Deployment --> [Netlify](https://www.netlify.com/)
+
+-   The React.js frontend is hosted on [Netlify](https://www.netlify.com/).
+
+-   Continuous Deployment (CD) is configured directly from the GitHub repository.
+
+-   Every push to the main branch triggers an automatic redeploy.
+
+-   Environment variables are configured in the Netlify dashboard for API communication.
+
+### Backend & Database - [Azure](https://azure.microsoft.com/en-us/free/students)
+
+-   The ASP.NET Core Web API is hosted using `Azure App Service`.
+
+-   The database runs on `Azure Database for MySQL Flexible Server`.
+
+-   SignalR is hosted on `Azure SignalR Service` for scalable real-time communication.
+
+-   Azure handles SSL certificates and secure connections between services.
+
+-   OpenAI API keys are securely managed using Azure Application Settings.
 
 <br/>
 
@@ -213,6 +242,7 @@ On application startup, the backend automatically seeds:
 ## 👩‍💻 Contact
 
 Email: [@HeidiDragomir](https://github.com/HeidiDragomir)
+
 LinkedIn: [Marinela-Adelheid Dragomir](https://www.linkedin.com/in/heidi-dragomir/)
 
 <br/>
